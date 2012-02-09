@@ -21,9 +21,11 @@ sub call {
 
     # If we are running as a backend server, the user will always appear
     # as 127.0.0.1. Select the most recent upstream IP (last in the list)
+    my $have_set_remote_addr;
     if ( $env->{'HTTP_X_FORWARDED_FOR'} ) {
         my ( $ip, ) = $env->{HTTP_X_FORWARDED_FOR} =~ /([^,\s]+)$/;
         $env->{REMOTE_ADDR} = $ip;
+        $have_set_remote_addr = 1;
     }
 
     if ( $env->{HTTP_X_FORWARDED_HOST} ) {
@@ -42,15 +44,21 @@ sub call {
         my ( $host, ) = $env->{HTTP_X_FORWARDED_HOST} =~ /([^,\s]+)$/;
         if ( $host =~ /^(.+):(\d+)$/ ) {
 #            $host = $1;
-            $env->{SERVER_PORT} = $2;
+             $env->{SERVER_PORT} = $2;
+             $env->{REMOTE_ADDR} = $1
+                unless $have_set_remote_addr;
         } elsif ( $env->{HTTP_X_FORWARDED_PORT} ) {
             # in apache2 httpd.conf (RequestHeader set X-Forwarded-Port 8443)
             $env->{SERVER_PORT} = $env->{HTTP_X_FORWARDED_PORT};
+            $env->{REMOTE_ADDR} = $host
+                unless $have_set_remote_addr;
             $host .= ":$env->{SERVER_PORT}";
             $env->{'psgi.url_scheme'} = 'https'
                 if $env->{SERVER_PORT} == 443;
         } else {
             $env->{SERVER_PORT} = $default_port;
+            $env->{REMOTE_ADDR} = $host
+                unless $have_set_remote_addr;
         }
         $env->{HTTP_HOST} = $host;
 
@@ -59,9 +67,13 @@ sub call {
         if ($host =~ /^(.+):(\d+)$/ ) {
 #            $env->{HTTP_HOST}   = $1;
             $env->{SERVER_PORT} = $2;
+            $env->{REMOTE_ADDR} = $1
+                unless $have_set_remote_addr;
         } elsif ($host =~ /^(.+)$/ ) {
             $env->{HTTP_HOST}   = $1;
             $env->{SERVER_PORT} = $default_port;
+            $env->{REMOTE_ADDR} = $1
+                unless $have_set_remote_addr;
         }
     }
 

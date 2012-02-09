@@ -1,5 +1,7 @@
 Revision history for Perl extension Plack::Middleware::ReverseProxy
 
+        - Fix RT#74778 so that $env->{REMOTE_HOST} is correctly overridden
+
 0.14    Sat May 26 20:19:23 PDT 2012
         - Fixed Plack dependency
 

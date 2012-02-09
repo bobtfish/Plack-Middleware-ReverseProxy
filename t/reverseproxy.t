@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Test::Base;
 use lib 't/lib';
-plan tests => 39;
+plan tests => 47;
 
 use Plack::Builder;
 use Plack::Test;
@@ -102,12 +102,14 @@ x-forwarded-for: 192.168.3.2
 x-forwarded-host: 192.168.1.2:5235
 --- base: http://192.168.1.2:5235/
 --- uri:  http://192.168.1.2:5235/?foo=bar
+--- address: 192.168.1.2
 
 === default port with HTTP_X_FORWARDED_HOST
 --- input
 x-forwarded-host: 192.168.1.2
 --- base: http://192.168.1.2/
 --- uri:  http://192.168.1.2/?foo=bar
+--- address: 192.168.1.2
 
 === default https port with HTTP_X_FORWARDED_HOST
 --- input
@@ -115,12 +117,14 @@ x-forwarded-https: on
 x-forwarded-host: 192.168.1.2
 --- base: https://192.168.1.2/
 --- uri:  https://192.168.1.2/?foo=bar
+--- address: 192.168.1.2
 
 === default port with HOST
 --- input
 host: 192.168.1.2
 --- base: http://192.168.1.2/
 --- uri:  http://192.168.1.2/?foo=bar
+--- address: 192.168.1.2
 
 === default https port with HOST
 --- input
@@ -128,6 +132,7 @@ host: 192.168.1.2
 https: ON
 --- base: https://192.168.1.2/
 --- uri:  https://192.168.1.2/?foo=bar
+--- address: 192.168.1.2
 
 === with HTTP_X_FORWARDED_HOST and HTTP_X_FORWARDED_PORT
 --- input
@@ -135,6 +140,8 @@ x-forwarded-host: 192.168.1.5
 x-forwarded-port: 1984
 --- base: http://192.168.1.5:1984/
 --- uri:  http://192.168.1.5:1984/?foo=bar
+--- address: 192.168.1.5
+
 === with multiple HTTP_X_FORWARDED_HOST and HTTP_X_FORWARDED_FOR
 --- input
 x-forwarded-host: outmost.proxy.example.com, middle.proxy.example.com
@@ -143,17 +150,20 @@ host: 192.168.1.7:5000
 --- address: 192.168.1.6
 --- base: http://middle.proxy.example.com/
 --- uri:  http://middle.proxy.example.com/?foo=bar
+
 === normal plackup status
 --- input
 host: 127.0.0.1:5000
 --- base: http://127.0.0.1:5000/
 --- uri:  http://127.0.0.1:5000/?foo=bar
+--- address: 127.0.0.1
 
 === HTTP_X_FORWARDED_PORT to secure port
 --- input
 x-forwarded-host: 192.168.1.2
 x-forwarded-port: 443
 --- secure: 1
+--- address: 192.168.1.2
 
 === HTTP_X_FORWARDED_PORT to secure port (apache2)
 --- input
